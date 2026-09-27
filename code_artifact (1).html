@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>都道府県マスター！〜カード集めの大冒険〜</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- D3.js and TopoJSON for Real Maps -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800;900&display=swap');
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Card Shining Effect */
+        .card-shine {
+            position: relative;
+            overflow: hidden;
+        }
+        .card-shine::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                60deg,
+                transparent 20%,
+                rgba(255, 255, 255, 0.4) 50%,
+                transparent 80%
+            );
+            transform: rotate(30deg);
+            animation: shine 4s infinite;
+        }
+        @keyframes shine {
+            0% { transform: translateX(-100%) rotate(30deg); }
+            20%, 100% { transform: translateX(100%) rotate(30deg); }
+        }
+    </style>
+</head>
+<body class="bg-amber-50 text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white shadow-lg sticky top-0 z-40">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="showScreen('menu')">
+                <span class="text-2xl md:text-3xl">🗾</span>
+                <h1 class="font-black text-lg md:text-2xl tracking-wide drop-shadow">都道府県マスター！</h1>
+            </div>
+
+            <!-- Coin Counter -->
+            <div class="flex items-center gap-3">
+                <div class="bg-amber-900/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-amber-300/40 flex items-center gap-2 shadow-inner">
+                    <i class="fa-solid fa-coins text-yellow-300 text-lg md:text-xl drop-shadow"></i>
+                    <span id="user-coins" class="font-black text-yellow-200 text-base md:text-lg">0</span>
+                    <span class="text-xs text-amber-100 font-bold">枚</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dynamic Content Container -->
+    <main class="max-w-4xl mx-auto w-full p-3 md:p-6 flex-1 flex flex-col justify-center">
+
+        <!-- MENU SCREEN -->
+        <section id="screen-menu" class="space-y-6 text-center py-4">
+            <!-- Hero Title -->
+            <div class="bg-white/80 backdrop-blur-md rounded-3xl p-6 shadow-xl border-4 border-amber-300 space-y-3">
+                <div class="inline-block bg-amber-100 text-amber-900 px-4 py-1 rounded-full text-xs md:text-sm font-extrabold border border-amber-300 mb-1">
+                    🌟 楽しく学んでカードをあつめよう！
+                </div>
+                <h2 class="text-2xl md:text-4xl font-black text-slate-800 tracking-tight">
+                    日本全国クイズ＆めいぶつガチャ
+                </h2>
+                <p class="text-slate-600 font-bold text-xs md:text-base">
+                    クイズに正解してコインをゲット！47都道府県のレアカードをコンプリートしよう！
+                </p>
+            </div>
+
+            <!-- Quiz Selection Section -->
+            <div class="space-y-4">
+                <h3 class="text-xl md:text-2xl font-black text-slate-800 text-left flex items-center gap-2 px-1">
+                    <i class="fa-solid fa-map-location-dot text-amber-500"></i> 挑戦するクイズを選ぶ
+                </h3>
+
+                <!-- EASY LEVEL (Region Selection) -->
+                <div class="bg-gradient-to-br from-emerald-50 to-teal-100 border-3 border-emerald-400 rounded-3xl p-4 md:p-5 text-left space-y-3 shadow-md">
+                    <div class="flex justify-between items-center border-b border-emerald-200 pb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-emerald-500 text-white font-black text-xs md:text-sm px-3 py-1 rounded-full shadow-sm">初級</span>
+                            <h4 class="text-lg md:text-xl font-black text-emerald-950">リアル日本地図クイズ</h4>
+                        </div>
+                        <span class="bg-yellow-300 text-amber-950 font-black text-xs px-2.5 py-1 rounded-full flex items-center gap-1 shadow">
+                            <i class="fa-solid fa-coins text-amber-600"></i> 正解で10枚
+                        </span>
+                    </div>
+                    <p class="text-xs md:text-sm text-emerald-900 font-bold">
+                        💡 挑戦する地方を選んでね！初めてクリアすると<span class="text-orange-600 font-black underline">初回ボーナス+50枚</span>もらえるよ！
+                    </p>
+
+                    <!-- Region Buttons Grid for Easy -->
+                    <div id="easy-region-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+                        <!-- Injected via JavaScript -->
+                    </div>
+                </div>
+
+                <!-- HARD LEVEL (Region Selection) -->
+                <div class="bg-gradient-to-br from-orange-50 to-amber-100 border-3 border-orange-400 rounded-3xl p-4 md:p-5 text-left space-y-3 shadow-md">
+                    <div class="flex justify-between items-center border-b border-orange-200 pb-2">
+                        <div class="flex items-center gap-2">
+                            <span id="hard-badge-status" class="bg-orange-500 text-white font-black text-xs md:text-sm px-3 py-1 rounded-full shadow-sm">
+                                🔒 地方別に解放
+                            </span>
+                            <h4 class="text-lg md:text-xl font-black text-orange-950">とくちょう・物産クイズ（上級）</h4>
+                        </div>
+                        <span class="bg-yellow-300 text-amber-950 font-black text-xs px-2.5 py-1 rounded-full flex items-center gap-1 shadow">
+                            <i class="fa-solid fa-coins text-amber-600"></i> 正解で10枚
+                        </span>
+                    </div>
+                    <p id="hard-status-desc" class="text-xs md:text-sm text-orange-900 font-bold">
+                        💡 各地方の初級コースをクリアすると解放されるよ！初めてクリアすると<span class="text-orange-600 font-black underline">初回ボーナス+50枚</span>もらえるよ！
+                    </p>
+
+                    <!-- Region Buttons Grid for Hard -->
+                    <div id="hard-region-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+                        <!-- Injected via JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Secondary Actions: Gacha & Collection -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <button onclick="showScreen('gacha')" class="bg-gradient-to-r from-pink-500 via-rose-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white p-5 rounded-3xl shadow-lg border-b-4 border-rose-700 transition transform active:scale-95 flex items-center justify-between group">
+                    <div class="text-left space-y-1">
+                        <span class="bg-yellow-300 text-rose-950 font-black text-xs px-2.5 py-0.5 rounded-full">ガチャをひく</span>
+                        <h4 class="text-xl font-black">めいぶつガチャ</h4>
+                        <p class="text-xs text-rose-100 font-bold">50枚で1回ひけるよ！</p>
+                    </div>
+                    <div class="text-4xl group-hover:scale-110 transition duration-200">🎁</div>
+                </button>
+
+                <button onclick="showScreen('collection')" class="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white p-5 rounded-3xl shadow-lg border-b-4 border-indigo-700 transition transform active:scale-95 flex items-center justify-between group">
+                    <div class="text-left space-y-1">
+                        <span class="bg-blue-200 text-indigo-950 font-black text-xs px-2.5 py-0.5 rounded-full">図鑑をみる</span>
+                        <h4 class="text-xl font-black">カード図鑑</h4>
+                        <p class="text-xs text-blue-100 font-bold" id="menu-collection-status">集めた数: 0 / 47</p>
+                    </div>
+                    <div class="text-4xl group-hover:scale-110 transition duration-200">📖</div>
+                </button>
+            </div>
+        </section>
+
+        <!-- QUIZ SCREEN -->
+        <section id="screen-quiz" class="hidden space-y-4 my-auto">
+            <!-- Quiz Progress Top Bar -->
+            <div class="bg-white/90 backdrop-blur-md rounded-2xl p-4 shadow-md border-2 border-amber-300 flex justify-between items-center gap-2">
+                <div class="flex items-center gap-2">
+                    <!-- Quit / Back to Menu Button -->
+                    <button onclick="showScreen('menu')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-black text-xs md:text-sm px-3 py-1.5 rounded-xl border-b-2 border-slate-400 transition active:scale-95 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        <span>やめる</span>
+                    </button>
+                    <span id="quiz-level-badge" class="bg-emerald-500 text-white font-extrabold text-xs px-2.5 py-1 rounded-full">初級</span>
+                    <span id="quiz-region-name" class="font-black text-slate-800 text-sm md:text-base">北海道・東北</span>
+                </div>
+                <div class="font-black text-amber-700 text-sm md:text-lg" id="quiz-progress-text">
+                    第 1 / 5 問
+                </div>
+            </div>
+
+            <!-- Quiz Display Main Area -->
+            <div class="bg-white rounded-3xl p-4 md:p-6 shadow-xl border-4 border-amber-200 space-y-4">
+
+                <!-- EASY MODE: Real Map Display -->
+                <div id="quiz-map-container" class="relative bg-teal-50/80 rounded-2xl border-2 border-teal-200 p-2 overflow-hidden h-64 md:h-80 flex items-center justify-center">
+                    <svg id="japan-map-svg" class="w-full h-full" viewBox="0 0 800 800"></svg>
+                </div>
+
+                <!-- HARD MODE: Feature Illustration Card -->
+                <div id="quiz-hard-card" class="hidden bg-gradient-to-br from-amber-50 to-orange-100 rounded-2xl border-2 border-orange-300 p-5 text-center space-y-3">
+                    <div class="inline-block bg-orange-500 text-white font-extrabold text-xs px-3 py-1 rounded-full">
+                        ヒントイラスト
+                    </div>
+                    <div id="hard-illustration-icon" class="text-6xl md:text-7xl py-2 drop-shadow">
+                        🍏
+                    </div>
+                    <p id="hard-hint-text" class="text-sm md:text-base font-black text-slate-800 leading-relaxed bg-white/80 p-3 rounded-xl border border-orange-200">
+                        りんごの生産量が日本一！津軽平野や弘前城が有名だよ。
+                    </p>
+                </div>
+
+                <!-- Question Prompt -->
+                <h3 id="quiz-question-title" class="text-center font-black text-lg md:text-2xl text-slate-800">
+                    赤くひかる都道府県の名前をえらぼう！
+                </h3>
+
+                <!-- 4 Choices Grid (Picked strictly from SAME region) -->
+                <div id="quiz-options-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                    <!-- Option Buttons Injected by JS -->
+                </div>
+
+                <!-- Answer Feedback Box -->
+                <div id="quiz-feedback-box" class="hidden rounded-2xl p-4 text-center font-black space-y-1">
+                    <div id="quiz-feedback-title" class="text-lg md:text-xl">⭕ 大正解！</div>
+                    <div id="quiz-feedback-desc" class="text-xs md:text-sm">コイン +10枚ゲット！</div>
+                </div>
+
+                <!-- Next Question Button -->
+                <button id="quiz-next-btn" onclick="nextQuestion()" class="hidden w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black py-3.5 rounded-2xl shadow-lg border-b-4 border-orange-700 text-lg transition active:scale-95">
+                    つぎの問題へ ➔
+                </button>
+            </div>
+        </section>
+
+        <!-- RESULT SCREEN -->
+        <section id="screen-result" class="hidden space-y-6 text-center my-auto">
+            <div class="bg-white rounded-3xl p-6 md:p-8 shadow-2xl border-4 border-amber-300 space-y-5">
+                <div class="text-5xl">🎉</div>
+                <h2 class="text-2xl md:text-3xl font-black text-slate-800">クイズしゅうりょう！</h2>
+                
+                <div class="bg-amber-50 rounded-2xl p-5 border-2 border-amber-200 space-y-2">
+                    <p class="text-slate-600 font-bold text-sm">今回のせいかい数</p>
+                    <p id="result-score-text" class="text-3xl md:text-4xl font-black text-amber-600">5 / 5 問</p>
+                    <div id="result-bonus-badge" class="hidden inline-block bg-gradient-to-r from-yellow-400 to-amber-500 text-amber-950 font-black text-xs md:text-sm px-4 py-1.5 rounded-full shadow border border-amber-300 mt-2">
+                        🎁 初回エリアクリアボーナス +50枚 ゲット！
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-center gap-2 text-slate-700 font-extrabold text-lg">
+                    <span>かくとくコイン:</span>
+                    <i class="fa-solid fa-coins text-yellow-500"></i>
+                    <span id="result-coins-text" class="text-2xl font-black text-amber-600">+50</span>
+                    <span>枚</span>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                    <button onclick="showScreen('menu')" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-800 font-black py-3.5 rounded-2xl shadow border-b-4 border-slate-400 text-base transition active:scale-95">
+                        メニューにもどる
+                    </button>
+                    <button onclick="showScreen('gacha')" class="flex-1 bg-gradient-to-r from-pink-500 to-rose-500 text-white font-black py-3.5 rounded-2xl shadow-lg border-b-4 border-rose-700 text-base transition active:scale-95">
+                        ガチャをひく 🎁
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- GACHA SCREEN -->
+        <section id="screen-gacha" class="hidden space-y-6 text-center my-auto">
+            <div class="bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 text-white rounded-3xl p-6 md:p-8 shadow-2xl border-4 border-purple-400 space-y-6">
+                <div class="space-y-2">
+                    <span class="bg-yellow-400 text-purple-950 font-black text-xs px-3 py-1 rounded-full uppercase tracking-wider">めいぶつガチャ</span>
+                    <h2 class="text-2xl md:text-4xl font-black">47都道府県のカードを集めよう！</h2>
+                    <p class="text-xs md:text-sm text-purple-200 font-bold">1回 50枚のコインでまわせるよ！</p>
+                </div>
+
+                <!-- Gacha Machine Visual -->
+                <div id="gacha-machine-visual" class="py-6 flex flex-col items-center justify-center space-y-4">
+                    <div class="text-8xl md:text-9xl animate-bounce">🎁</div>
+                </div>
+
+                <!-- Gacha Action Button -->
+                <button id="gacha-pull-btn" onclick="doGacha()" class="w-full max-w-sm mx-auto bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 hover:from-yellow-300 hover:to-amber-400 text-amber-950 font-black text-xl py-4 rounded-2xl shadow-xl border-b-4 border-amber-600 transition transform active:scale-95 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-coins text-amber-700"></i>
+                    <span>ガチャをひく (50枚)</span>
+                </button>
+
+                <button onclick="showScreen('menu')" class="inline-block text-slate-300 font-bold text-sm underline pt-2">
+                    メニューへもどる
+                </button>
+            </div>
+        </section>
+
+        <!-- COLLECTION SCREEN -->
+        <section id="screen-collection" class="hidden space-y-4">
+            <!-- Collection Header -->
+            <div class="bg-white rounded-3xl p-5 shadow-lg border-3 border-amber-300 flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div>
+                    <h2 class="text-xl md:text-2xl font-black text-slate-800">📖 47都道府県カード図鑑</h2>
+                    <p class="text-xs text-slate-500 font-bold">カードをタップすると、くわしい情報が見られるよ！</p>
+                </div>
+                <div class="bg-amber-100 px-4 py-2 rounded-2xl border border-amber-300 text-amber-900 font-black text-sm text-center">
+                    あつめた数: <span id="collection-count-text" class="text-xl text-amber-600">0</span> / 47
+                </div>
+            </div>
+
+            <!-- Card Grid -->
+            <div id="collection-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                <!-- Injected via JavaScript -->
+            </div>
+
+            <div class="text-center pt-2">
+                <button onclick="showScreen('menu')" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-black px-6 py-3 rounded-2xl border-b-4 border-slate-400 transition">
+                    メニューへもどる
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- GACHA RESULT MODAL -->
+    <div id="modal-gacha-result" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl border-4 border-yellow-400 animate-fade-in">
+            <div id="gacha-result-rarity" class="inline-block px-4 py-1 rounded-full text-white font-black text-xs shadow">
+                SSR
+            </div>
+            
+            <div id="gacha-card-visual" class="bg-gradient-to-br from-amber-100 to-orange-100 rounded-2xl p-6 border-2 border-amber-300 space-y-2 card-shine">
+                <div id="gacha-card-icon" class="text-7xl py-2">🍏</div>
+                <h3 id="gacha-card-title" class="text-xl font-black text-slate-900">青森県</h3>
+                <p id="gacha-card-item" class="text-xs font-bold text-amber-800 bg-white/80 py-1 px-3 rounded-full inline-block">名物: つがるりんご</p>
+            </div>
+
+            <p id="gacha-result-msg" class="text-xs font-bold text-slate-600">新しいカードをゲットしたよ！</p>
+
+            <button onclick="closeGachaModal()" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black py-3 rounded-2xl shadow border-b-4 border-orange-700 active:scale-95">
+                OK
+            </button>
+        </div>
+    </div>
+
+    <!-- CARD DETAIL MODAL -->
+    <div id="modal-card-detail" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl border-4 border-amber-300">
+            <div class="flex justify-between items-center border-b pb-2">
+                <span id="detail-rarity-badge" class="px-3 py-0.5 rounded-full text-white font-black text-xs">SSR</span>
+                <span id="detail-pref-region" class="text-xs font-bold text-slate-500">東北地方</span>
+            </div>
+
+            <div class="bg-gradient-to-br from-amber-50 to-orange-100 rounded-2xl p-5 border border-amber-200 space-y-2">
+                <div id="detail-card-icon" class="text-6xl">🍏</div>
+                <h3 id="detail-pref-name" class="text-2xl font-black text-slate-900">青森県</h3>
+                <p id="detail-capital-name" class="text-xs font-bold text-slate-600">県庁所在地: 青森市</p>
+            </div>
+
+            <div class="text-left bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs font-bold space-y-1">
+                <p class="text-amber-800 font-extrabold">🍌 特徴・名物:</p>
+                <p id="detail-specialties-text" class="text-slate-700">つがるりんご</p>
+            </div>
+
+            <button onclick="closeCardDetailModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-black py-2.5 rounded-xl border-b-4 border-slate-400">
+                とじる
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // REGIONS DATA DEFINITION
+        const REGIONS_LIST = [
+            { id: "hokkaido_tohoku", name: "北海道・東北", icon: "🏔️", matchRegions: ["北海道", "東北"], prefIds: [1, 2, 3, 4, 5, 6, 7] },
+            { id: "kanto", name: "関東", icon: "🗼", matchRegions: ["関東"], prefIds: [8, 9, 10, 11, 12, 13, 14] },
+            { id: "chubu", name: "中部", icon: "🗻", matchRegions: ["中部"], prefIds: [15, 16, 17, 18, 19, 20, 21, 22, 23] },
+            { id: "kinki", name: "近畿", icon: "🏯", matchRegions: ["近畿", "関西"], prefIds: [24, 25, 26, 27, 28, 29, 30] },
+            { id: "chugoku", name: "中国", icon: "⛩️", matchRegions: ["中国"], prefIds: [31, 32, 33, 34, 35] },
+            { id: "shikoku", name: "四国", icon: "🍊", matchRegions: ["四国"], prefIds: [36, 37, 38, 39] },
+            { id: "kyushu_okinawa", name: "九州・沖縄", icon: "🌺", matchRegions: ["九州", "沖縄"], prefIds: [40, 41, 42, 43, 44, 45, 46, 47] }
+        ];
+
+        const PREFECTURES_DATA = [
+            { id: 1, name: "北海道", kana: "ほっかいどう", region: "北海道", capital: "札幌市", icon: "🍣", rarity: "SSR", specialty: "豪華海鮮丼", hint: "日本で一番広い都道府県！広大な自然やいくら・サケなどの海鮮、スープカレーが有名だよ。" },
+            { id: 2, name: "青森県", kana: "あおもりけん", region: "東北", capital: "青森市", icon: "🍏", rarity: "SR", specialty: "つがるりんご", hint: "りんごの生産量が日本一！津軽海峡やねぶた祭りが有名だよ。" },
+            { id: 3, name: "岩手県", kana: "いわてけん", region: "東北", capital: "盛岡市", icon: "🍜", rarity: "R", specialty: "わんこそば", hint: "本州で一番面積が広い県！南部鉄器やわんこそば、小岩井農場が有名だよ。" },
+            { id: 4, name: "宮城県", kana: "みやぎけん", region: "東北", capital: "仙台市", icon: "🐮", rarity: "SR", specialty: "仙台牛たん", hint: "伊達政宗ゆかりの地！仙台の牛たんや松島が有名だよ。" },
+            { id: 5, name: "秋田県", kana: "あきたけん", region: "東北", capital: "秋田市", icon: "🐕", rarity: "R", specialty: "きりたんぽ鍋", hint: "秋田犬やあきたこまち（お米）、きりたんぽで有名だよ。" },
+            { id: 6, name: "山形県", kana: "やまがたけん", region: "東北", capital: "山形市", icon: "🍒", rarity: "R", specialty: "高級さくらんぼ", hint: "さくらんぼの生産量が日本一！将棋のコマの生産地でもあるよ。" },
+            { id: 7, name: "福島県", kana: "ふくしまけん", region: "東北", capital: "福島市", icon: "🍑", rarity: "R", specialty: "あかつき桃", hint: "美味しい桃や会津若松の鶴ヶ城で有名な県だよ。" },
+            { id: 8, name: "茨城県", kana: "いばらきけん", region: "関東", capital: "水戸市", icon: "🫘", rarity: "N", specialty: "水戸納豆", hint: "納豆やメロンの生産が有名！筑波宇宙センターもあるよ。" },
+            { id: 9, name: "栃木県", kana: "とちぎけん", region: "関東", capital: "宇都宮市", icon: "🥟", rarity: "R", specialty: "宇都宮餃子", hint: "日光東照宮や、いちご（とちおとめ）、餃子が有名だよ。" },
+            { id: 10, name: "群馬県", kana: "ぐんまけん", region: "関東", capital: "前橋市", icon: "♨️", rarity: "N", specialty: "草津温泉饅頭", hint: "草津温泉や、ねぎ・こんにゃくの生産で有名な県だよ。" },
+            { id: 11, name: "埼玉県", kana: "さいたまけん", region: "関東", capital: "さいたま市", icon: "🍘", rarity: "N", specialty: "草加せんべい", hint: "草加せんべいや長瀞の川くだりが有名な県だよ。" },
+            { id: 12, name: "千葉県", kana: "ちばけん", region: "関東", capital: "千葉市", icon: "🥜", rarity: "SR", specialty: "落花生", hint: "成田国際空港やテーマパーク、落花生の生産で有名だよ。" },
+            { id: 13, name: "東京都", kana: "とうきょうと", region: "関東", capital: "新宿区", icon: "🗼", rarity: "SSR", specialty: "東京タワー模型", hint: "日本の首都！スカイツリーや浅草など観光地がいっぱいだよ。" },
+            { id: 14, name: "神奈川県", kana: "かながわけん", region: "関東", capital: "横浜市", icon: "🥟", rarity: "SR", specialty: "横浜中華街シュウマイ", hint: "横浜中華街や鎌倉の大仏、箱根温泉が有名な県だよ。" },
+            { id: 15, name: "新潟県", kana: "にいがたけん", region: "中部", capital: "新潟市", icon: "🌾", rarity: "SR", specialty: "魚沼産コシヒカリ", hint: "美味しいお米（コシヒカリ）や日本酒、雪国として有名だよ。" },
+            { id: 16, name: "富山県", kana: "とやまけん", region: "中部", capital: "富山市", icon: "🦑", rarity: "R", specialty: "ホタルイカ", hint: "立山黒部アルペンルートやホタルイカ、ます寿司が有名だよ。" },
+            { id: 17, name: "石川県", kana: "いしかわけん", region: "中部", capital: "金沢市", icon: "🦀", rarity: "SR", specialty: "加賀能登ズワイガニ", hint: "兼六園や金箔、能登半島で有名な歴史ある県だよ。" },
+            { id: 18, name: "福井県", kana: "ふくいけん", region: "中部", capital: "福井市", icon: "🦖", rarity: "R", specialty: "恐竜の化石", hint: "恐竜の化石がたくさん見つかる県！越前ガニも有名だよ。" },
+            { id: 19, name: "山梨県", kana: "やまなしけん", region: "中部", capital: "甲府市", icon: "🍇", rarity: "R", specialty: "甲州ぶどう", hint: "富士山の北側に位置し、ぶどうや桃の生産が日本一だよ。" },
+            { id: 20, name: "長野県", kana: "ながのけん", region: "中部", capital: "長野市", icon: "🍏", rarity: "R", specialty: "信州そば", hint: "日本アルプスなど高い山に囲まれ、わさびやそばが有名だよ。" },
+            { id: 21, name: "岐阜県", kana: "ぎふけん", region: "中部", capital: "岐阜市", icon: "🛖", rarity: "N", specialty: "白川郷合掌造り模型", hint: "世界遺産の白川郷や、飛騨牛が有名な県だよ。" },
+            { id: 22, name: "静岡県", kana: "しずおかけん", region: "中部", capital: "静岡市", icon: "🍵", rarity: "SR", specialty: "静岡新茶", hint: "富士山南側にあり、お茶やうなぎ、みかんの生産が有名だよ。" },
+            { id: 23, name: "愛知県", kana: "あいちけん", region: "中部", capital: "名古屋市", icon: "🍤", rarity: "SR", specialty: "名古屋名物エビフライ", hint: "自動車産業が盛ん！名古屋城や小倉トーストが有名だよ。" },
+            { id: 24, name: "三重県", kana: "みえけん", region: "近畿", capital: "津市", icon: "🦞", rarity: "SR", specialty: "伊勢海老", hint: "伊勢神宮や伊勢海老、松阪牛で有名な県だよ。" },
+            { id: 25, name: "滋賀県", kana: "しがけん", region: "近畿", capital: "大津市", icon: "⛵", rarity: "N", specialty: "琵琶湖特産ふなずし", hint: "日本で一番大きな湖「琵琶湖（びわこ）」がある県だよ。" },
+            { id: 26, name: "京都府", kana: "きょうとふ", region: "近畿", capital: "京都市", icon: "⛩️", rarity: "SSR", specialty: "金閣寺模型", hint: "歴史ある古い都！金閣寺や清水寺など文化財がいっぱいだよ。" },
+            { id: 27, name: "大阪府", kana: "おおさかふ", region: "近畿", capital: "大阪市", icon: "🐙", rarity: "SSR", specialty: "元祖たこ焼き", hint: "天下の台所！たこ焼きやお好み焼き、大阪城が有名だよ。" },
+            { id: 28, name: "兵庫県", kana: "ひょうごけん", region: "近畿", capital: "神戸市", icon: "🥩", rarity: "SR", specialty: "極上神戸牛", hint: "姫路城や神戸港、高級な神戸牛で有名な県だよ。" },
+            { id: 29, name: "奈良県", kana: "ならけん", region: "近畿", capital: "奈良市", icon: "🦌", rarity: "R", specialty: "奈良公園の鹿マスコット", hint: "大仏様がいる東大寺や、奈良公園の鹿で有名な県だよ。" },
+            { id: 30, name: "和歌山県", kana: "わかやまけん", region: "近畿", capital: "和歌山市", icon: "🍊", rarity: "R", specialty: "有田みかん", hint: "みかんや梅干しの生産量が日本一！高野山も有名だよ。" },
+            { id: 31, name: "鳥取県", kana: "とっとりけん", region: "中国", capital: "鳥取市", icon: "🏜️", rarity: "N", specialty: "鳥取砂丘の砂時計", hint: "大きな鳥取砂丘や、二十世紀梨の栽培が有名だよ。" },
+            { id: 32, name: "島根県", kana: "しまねけん", region: "中国", capital: "松江市", icon: "⛩️", rarity: "N", specialty: "出雲大社のお守り", hint: "神様が集まる出雲大社や、石見銀山で有名な県だよ。" },
+            { id: 33, name: "岡山県", kana: "おかやまけん", region: "中国", capital: "岡山市", icon: "🍑", rarity: "R", specialty: "清水白桃", hint: "桃太郎伝説のゆかりの地！白桃やマスカットが有名だよ。" },
+            { id: 34, name: "広島県", kana: "ひろしまけん", region: "中国", capital: "広島市", icon: "🦪", rarity: "SR", specialty: "広島産焼き牡蠣", hint: "厳島神社の大鳥居や、お好み焼き・牡蠣が有名だよ。" },
+            { id: 35, name: "山口県", kana: "やまぐちけん", region: "中国", capital: "山口市", icon: "🐡", rarity: "R", specialty: "下関のフグ刺し", hint: "フグ料理で有名な下関や、角島大橋がある県だよ。" },
+            { id: 36, name: "徳島県", kana: "とくしまけん", region: "四国", capital: "徳島市", icon: "💃", rarity: "N", specialty: "阿波踊り人形", hint: "夏の「阿波踊り」や鳴門の渦潮（うずしお）で有名な県だよ。" },
+            { id: 37, name: "香川県", kana: "かがわけん", region: "四国", capital: "高松市", icon: "🍜", rarity: "SR", specialty: "本場讃岐うどん", hint: "日本で一番面積が小さい県！讃岐うどんが有名だよ。" },
+            { id: 38, name: "愛媛県", kana: "えひめけん", region: "四国", capital: "松山市", icon: "🍊", rarity: "R", specialty: "愛媛いよかん", hint: "みかんや伊予柑の栽培、道後温泉で有名な県だよ。" },
+            { id: 39, name: "高知県", kana: "こうちけん", region: "四国", capital: "高知市", icon: "🐟", rarity: "R", specialty: "土佐のカツオたたき", hint: "坂本龍馬の出身地！かつおのタタキや清流四万十川が有名だよ。" },
+            { id: 40, name: "福岡県", kana: "ふくおかけん", region: "九州", capital: "福岡市", icon: "🍜", rarity: "SR", specialty: "博多とんこつラーメン", hint: "博多ラーメンや明太子、太宰府天満宮が有名な県だよ。" },
+            { id: 41, name: "佐賀県", kana: "さがけん", region: "九州", capital: "佐賀市", icon: "🏺", rarity: "N", specialty: "有田焼の器", hint: "有田焼や伊万里焼など陶磁器の生産で有名な県だよ。" },
+            { id: 42, name: "長崎県", kana: "ながさきけん", region: "九州", capital: "長崎市", icon: "🍰", rarity: "R", specialty: "長崎カステラ", hint: "ハウステンボスや異国情緒あふれる街並み、カステラが有名だよ。" },
+            { id: 43, name: "熊本県", kana: "くまもとけん", region: "九州", capital: "熊本市", icon: "🍉", rarity: "SR", specialty: "熊本すいか", hint: "立派な熊本城や阿蘇山、すいかの生産で有名な県だよ。" },
+            { id: 44, name: "大分県", kana: "おおいたけん", region: "九州", capital: "大分市", icon: "♨️", rarity: "R", specialty: "別府温泉湯の華", hint: "別府や由布院など、日本一の温泉湧出量を誇る県だよ。" },
+            { id: 45, name: "宮崎県", kana: "みやざきけん", region: "九州", capital: "宮崎市", icon: "🥭", rarity: "SR", specialty: "完熟マンゴー", hint: "南国ムード漂う日南海岸や、完熟マンゴーが有名な県だよ。" },
+            { id: 46, name: "鹿児島県", kana: "かごしまけん", region: "九州", capital: "鹿児島市", icon: "🌋", rarity: "SR", specialty: "黒豚と桜島みかん", hint: "桜島という活火山や、かごしま黒豚、さつまいもが有名だよ。" },
+            { id: 47, name: "沖縄県", kana: "おきなわけん", region: "沖縄", capital: "那覇市", icon: "🌺", rarity: "SSR", specialty: "首里城マスコット", hint: "綺麗な海と暖かい気候！首里城やシーサー、ゴーヤが有名だよ。" }
+        ];
+
+        // APP STATE
+        let userCoins = parseInt(localStorage.getItem("pref_quiz_coins")) || 0;
+        let collectedCards = JSON.parse(localStorage.getItem("pref_quiz_cards")) || [];
+        let clearedEasyRegions = JSON.parse(localStorage.getItem("pref_quiz_cleared_easy_regions")) || [];
+        let clearedHardRegions = JSON.parse(localStorage.getItem("pref_quiz_cleared_hard_regions")) || [];
+
+        let currentQuizQueue = [];
+        let currentQuestionIndex = 0;
+        let currentScore = 0;
+        let currentQuizLevel = 'easy'; // 'easy' or 'hard'
+        let currentRegionObj = null;
+        let isFirstClearBonusEligible = false;
+        let isAnswered = false;
+        let japanGeoData = null;
+        let isMapLoading = false;
+
+        function updateCoinsDisplay() {
+            const coinEl = document.getElementById('user-coins');
+            if (coinEl) coinEl.innerText = userCoins;
+            localStorage.setItem("pref_quiz_coins", userCoins);
+        }
+
+        function showScreen(screenId) {
+            const screens = ['screen-menu', 'screen-quiz', 'screen-result', 'screen-gacha', 'screen-collection'];
+            screens.forEach(s => {
+                const el = document.getElementById(s);
+                if (el) el.classList.add('hidden');
+            });
+
+            const target = document.getElementById(`screen-${screenId}`);
+            if (target) target.classList.remove('hidden');
+
+            if (screenId === 'menu') {
+                renderMenuRegionGrids();
+                const countEl = document.getElementById('menu-collection-status');
+                if (countEl) countEl.innerText = `集めた数: ${collectedCards.length} / 47`;
+            } else if (screenId === 'gacha') {
+                renderGachaScreen();
+            } else if (screenId === 'collection') {
+                renderCollectionGrid();
+            }
+        }
+
+        function renderMenuRegionGrids() {
+            const easyGrid = document.getElementById('easy-region-grid');
+            const hardGrid = document.getElementById('hard-region-grid');
+
+            if (easyGrid) {
+                easyGrid.innerHTML = '';
+                REGIONS_LIST.forEach(r => {
+                    const isCleared = clearedEasyRegions.includes(r.id);
+                    const btn = document.createElement('button');
+                    btn.onclick = () => startQuiz(r.id, 'easy');
+                    btn.className = `p-3 rounded-2xl border-2 font-black text-xs md:text-sm flex flex-col items-center justify-center gap-1 shadow-sm transition active:scale-95 ${
+                        isCleared ? 'bg-emerald-100 border-emerald-400 text-emerald-950' : 'bg-white border-emerald-300 text-slate-800 hover:bg-emerald-50'
+                    }`;
+                    btn.innerHTML = `
+                        <span class="text-xl md:text-2xl">${r.icon}</span>
+                        <span>${r.name}</span>
+                        ${isCleared ? `<span class="text-[10px] bg-emerald-500 text-white px-2 py-0.5 rounded-full mt-1">👑 クリア済 (${r.prefIds.length}問)</span>` : `<span class="text-[10px] text-emerald-700 mt-1">${r.prefIds.length}問</span>`}
+                    `;
+                    easyGrid.appendChild(btn);
+                });
+            }
+
+            if (hardGrid) {
+                hardGrid.innerHTML = '';
+                REGIONS_LIST.forEach(r => {
+                    const isUnlocked = clearedEasyRegions.includes(r.id);
+                    const isHardCleared = clearedHardRegions.includes(r.id);
+                    const btn = document.createElement('button');
+                    if (isUnlocked) {
+                        btn.onclick = () => startQuiz(r.id, 'hard');
+                        btn.className = `p-3 rounded-2xl border-2 font-black text-xs md:text-sm flex flex-col items-center justify-center gap-1 shadow-sm transition active:scale-95 ${
+                            isHardCleared ? 'bg-orange-100 border-orange-400 text-orange-950' : 'bg-white border-orange-400 text-slate-800 hover:bg-orange-50'
+                        }`;
+                        btn.innerHTML = `
+                            <span class="text-xl md:text-2xl">${r.icon}</span>
+                            <span>${r.name}</span>
+                            ${isHardCleared ? `<span class="text-[10px] bg-orange-500 text-white px-2 py-0.5 rounded-full mt-1">👑 クリア済 (${r.prefIds.length}問)</span>` : `<span class="text-[10px] bg-orange-500 text-white px-2 py-0.5 rounded-full mt-1">🌟 挑戦する (${r.prefIds.length}問)</span>`}
+                        `;
+                    } else {
+                        btn.disabled = true;
+                        btn.className = "p-3 rounded-2xl border-2 border-slate-200 bg-slate-100/70 text-slate-400 font-black text-xs md:text-sm flex flex-col items-center justify-center gap-1 opacity-70 cursor-not-allowed";
+                        btn.innerHTML = `
+                            <span class="text-xl md:text-2xl opacity-50">${r.icon}</span>
+                            <span>${r.name}</span>
+                            <span class="text-[10px] text-slate-400 mt-1">🔒 初級クリアで解放 (${r.prefIds.length}問)</span>
+                        `;
+                    }
+                    hardGrid.appendChild(btn);
+                });
+            }
+        }
+
+        function startQuiz(regionId, level) {
+            currentQuizLevel = level;
+            currentRegionObj = REGIONS_LIST.find(r => r.id === regionId);
+            if (!currentRegionObj) return;
+
+            let regionPrefs = PREFECTURES_DATA.filter(p => currentRegionObj.prefIds.includes(p.id));
+            currentQuizQueue = [...regionPrefs].sort(() => 0.5 - Math.random());
+
+            currentQuestionIndex = 0;
+            currentScore = 0;
+
+            const levelBadge = document.getElementById('quiz-level-badge');
+            if (levelBadge) {
+                levelBadge.innerText = level === 'easy' ? '初級' : '上級';
+                levelBadge.className = level === 'easy' 
+                    ? 'bg-emerald-500 text-white font-extrabold text-xs px-2.5 py-1 rounded-full'
+                    : 'bg-orange-500 text-white font-extrabold text-xs px-2.5 py-1 rounded-full';
+            }
+
+            const regionNameEl = document.getElementById('quiz-region-name');
+            if (regionNameEl) regionNameEl.innerText = currentRegionObj.name;
+
+            showScreen('quiz');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            isAnswered = false;
+            const currentPref = currentQuizQueue[currentQuestionIndex];
+
+            document.getElementById('quiz-progress-text').innerText = `第 ${currentQuestionIndex + 1} / ${currentQuizQueue.length} 問`;
+            document.getElementById('quiz-feedback-box').classList.add('hidden');
+            document.getElementById('quiz-next-btn').classList.add('hidden');
+
+            const mapContainer = document.getElementById('quiz-map-container');
+            const hardCard = document.getElementById('quiz-hard-card');
+            const questionTitle = document.getElementById('quiz-question-title');
+
+            if (currentQuizLevel === 'easy') {
+                mapContainer.classList.remove('hidden');
+                hardCard.classList.add('hidden');
+                questionTitle.innerText = "赤くひかる都道府県の名前をえらぼう！";
+                renderD3RegionalMap(currentPref);
+            } else {
+                mapContainer.classList.add('hidden');
+                hardCard.classList.remove('hidden');
+                questionTitle.innerText = "ヒントを見て、あてはまる都道府県をえらぼう！";
+
+                document.getElementById('hard-illustration-icon').innerText = currentPref.icon;
+                document.getElementById('hard-hint-text').innerText = currentPref.hint;
+            }
+
+            generateChoices(currentPref);
+        }
+
+        async function loadJapanGeoJsonData() {
+            if (japanGeoData) return;
+            if (isMapLoading) return;
+            isMapLoading = true;
+
+            const urls = [
+                'https://cdn.jsdelivr.net/gh/deldersveld/topojson@master/countries/japan/japan-prefectures.json',
+                'https://cdn.jsdelivr.net/gh/dataofjapan/land@master/japan.geojson'
+            ];
+
+            for (const url of urls) {
+                try {
+                    const res = await fetch(url);
+                    if (!res.ok) continue;
+                    const text = await res.text();
+                    if (text.startsWith('version https://git-lfs')) continue;
+                    const data = JSON.parse(text);
+                    
+                    if (data.type === 'Topology') {
+                        const key = Object.keys(data.objects)[0];
+                        japanGeoData = topojson.feature(data, data.objects[key]);
+                    } else if (data.type === 'FeatureCollection') {
+                        japanGeoData = data;
+                    }
+                    if (japanGeoData && japanGeoData.features) {
+                        break;
+                    }
+                } catch (e) {
+                    console.warn("Failed loading map from:", url, e);
+                }
+            }
+            isMapLoading = false;
+
+            // Re-render map if quiz screen is active in easy mode
+            const quizScreen = document.getElementById('screen-quiz');
+            if (quizScreen && !quizScreen.classList.contains('hidden') && currentQuizLevel === 'easy' && currentQuizQueue[currentQuestionIndex]) {
+                renderD3RegionalMap(currentQuizQueue[currentQuestionIndex]);
+            }
+        }
+
+        function getPrefIdFromFeature(f) {
+            if (!f) return null;
+            const props = f.properties || {};
+            const id = f.id || props.id || props.code || props.ISO_1 || props.N03_007;
+            if (id) {
+                const num = parseInt(String(id).replace(/[^0-9]/g, ''), 10);
+                if (num >= 1 && num <= 47) return num;
+            }
+            const name = props.nam_ja || props.name || props.nam || props.N03_001 || props.N03_004 || "";
+            const found = PREFECTURES_DATA.find(p => name.includes(p.name) || p.name.includes(name));
+            return found ? found.id : null;
+        }
+
+        function renderD3RegionalMap(targetPref) {
+            const svg = d3.select("#japan-map-svg");
+            svg.selectAll("*").remove();
+
+            const width = 800;
+            const height = 800;
+
+            if (!japanGeoData) {
+                // Display loading indicator
+                const g = svg.append("g").attr("transform", `translate(${width / 2}, ${height / 2})`);
+                g.append("text")
+                    .attr("text-anchor", "middle")
+                    .attr("fill", "#059669")
+                    .attr("font-weight", "bold")
+                    .attr("font-size", "22px")
+                    .text("🗺️ 地図データをよみこみ中...");
+                
+                // Trigger load if not started
+                loadJapanGeoJsonData();
+                return;
+            }
+
+            // Filter features belonging to current region
+            const regionFeatures = japanGeoData.features.filter(f => {
+                const pid = getPrefIdFromFeature(f);
+                return pid && currentRegionObj.prefIds.includes(pid);
+            });
+
+            const displayFeatures = regionFeatures.length > 0 ? regionFeatures : japanGeoData.features;
+
+            // Projection zoomed into current region
+            const projection = d3.geoMercator();
+            const pathGenerator = d3.geoPath().projection(projection);
+
+            const featureCollection = {
+                type: "FeatureCollection",
+                features: displayFeatures
+            };
+
+            projection.fitExtent([[40, 40], [width - 40, height - 40]], featureCollection);
+
+            const mapGroup = svg.append("g");
+
+            mapGroup.selectAll("path")
+                .data(displayFeatures)
+                .enter()
+                .append("path")
+                .attr("d", pathGenerator)
+                .attr("fill", d => {
+                    const pid = getPrefIdFromFeature(d);
+                    if (pid === targetPref.id) {
+                        return "#ef4444"; // Highlight target red
+                    }
+                    return "#fde047"; // Region yellow
+                })
+                .attr("stroke", "#ffffff")
+                .attr("stroke-width", 2);
+
+            // Render Static Pin over Target Prefecture
+            const targetFeature = japanGeoData.features.find(d => getPrefIdFromFeature(d) === targetPref.id);
+
+            if (targetFeature) {
+                const centroid = pathGenerator.centroid(targetFeature);
+                if (!isNaN(centroid[0]) && !isNaN(centroid[1])) {
+                    const pinGroup = svg.append("g")
+                        .attr("transform", `translate(${centroid[0]}, ${centroid[1]})`);
+
+                    pinGroup.append("circle")
+                        .attr("r", 16)
+                        .attr("fill", "#dc2626")
+                        .attr("opacity", 0.5);
+
+                    pinGroup.append("text")
+                        .attr("y", -6)
+                        .attr("text-anchor", "middle")
+                        .attr("font-size", "30px")
+                        .text("📍");
+                }
+            }
+        }
+
+        function generateChoices(correctPref) {
+            const optionsGrid = document.getElementById('quiz-options-grid');
+            optionsGrid.innerHTML = '';
+
+            // Get all prefectures in current region
+            const sameRegionPrefs = PREFECTURES_DATA.filter(p => currentRegionObj.prefIds.includes(p.id));
+            
+            // Other prefectures in region for wrong answers
+            let wrongPool = sameRegionPrefs.filter(p => p.id !== correctPref.id);
+
+            // If region has fewer than 4 prefectures, add nearby prefectures
+            if (wrongPool.length < 3) {
+                const extraPool = PREFECTURES_DATA.filter(p => p.id !== correctPref.id && !wrongPool.some(w => w.id === p.id));
+                wrongPool = wrongPool.concat(extraPool);
+            }
+
+            // Shuffle and pick 3 wrong options
+            wrongPool = wrongPool.sort(() => 0.5 - Math.random()).slice(0, 3);
+
+            // Combine correct option + 3 wrong options
+            const choices = [correctPref, ...wrongPool].sort(() => 0.5 - Math.random());
+
+            choices.forEach(pref => {
+                const btn = document.createElement('button');
+                btn.onclick = () => checkAnswer(pref, correctPref, btn);
+                btn.className = "quiz-choice-btn w-full bg-white hover:bg-amber-100/80 text-slate-800 font-black py-4 px-4 rounded-2xl border-2 border-amber-300 shadow active:scale-95 transition text-base md:text-lg flex items-center justify-center gap-2";
+                btn.innerText = pref.name;
+                optionsGrid.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedPref, correctPref, selectedBtn) {
+            if (isAnswered) return;
+            isAnswered = true;
+
+            const allBtns = document.querySelectorAll('.quiz-choice-btn');
+            allBtns.forEach(btn => btn.disabled = true);
+
+            const feedbackBox = document.getElementById('quiz-feedback-box');
+            const feedbackTitle = document.getElementById('quiz-feedback-title');
+            const feedbackDesc = document.getElementById('quiz-feedback-desc');
+            const nextBtn = document.getElementById('quiz-next-btn');
+
+            if (selectedPref.id === correctPref.id) {
+                // CORRECT
+                currentScore++;
+                userCoins += 10; // 10 coins per correct answer
+                updateCoinsDisplay();
+
+                selectedBtn.className = "w-full bg-emerald-500 text-white font-black py-4 px-4 rounded-2xl border-2 border-emerald-700 shadow text-base md:text-lg flex items-center justify-center gap-2 animate-bounce";
+                selectedBtn.innerText = `⭕ ${selectedPref.name}`;
+
+                feedbackBox.className = "rounded-2xl p-4 text-center font-black space-y-1 bg-emerald-100 border-2 border-emerald-400 text-emerald-950";
+                feedbackTitle.innerText = "⭕ 大正解！";
+                feedbackDesc.innerText = "コイン +10枚ゲット！";
+            } else {
+                // INCORRECT
+                selectedBtn.className = "w-full bg-rose-500 text-white font-black py-4 px-4 rounded-2xl border-2 border-rose-700 shadow text-base md:text-lg flex items-center justify-center gap-2";
+                selectedBtn.innerText = `❌ ${selectedPref.name}`;
+
+                // Highlight correct button
+                allBtns.forEach(btn => {
+                    if (btn.innerText === correctPref.name) {
+                        btn.className = "w-full bg-emerald-500 text-white font-black py-4 px-4 rounded-2xl border-2 border-emerald-700 shadow text-base md:text-lg flex items-center justify-center gap-2";
+                    }
+                });
+
+                feedbackBox.className = "rounded-2xl p-4 text-center font-black space-y-1 bg-rose-100 border-2 border-rose-400 text-rose-950";
+                feedbackTitle.innerText = "❌ おしい！";
+                feedbackDesc.innerText = `正解は「${correctPref.name}」だよ！`;
+            }
+
+            feedbackBox.classList.remove('hidden');
+            nextBtn.classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < currentQuizQueue.length) {
+                loadQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            showScreen('result');
+
+            const isPerfect = (currentScore === currentQuizQueue.length);
+            const totalQuestions = currentQuizQueue.length;
+            const coinsEarned = currentScore * 10;
+
+            document.getElementById('result-score-text').innerText = `${currentScore} / ${totalQuestions} 問`;
+            
+            let bonusCoins = 0;
+            const bonusBadge = document.getElementById('result-bonus-badge');
+
+            if (isPerfect) {
+                if (currentQuizLevel === 'easy') {
+                    if (!clearedEasyRegions.includes(currentRegionObj.id)) {
+                        clearedEasyRegions.push(currentRegionObj.id);
+                        localStorage.setItem("pref_quiz_cleared_easy_regions", JSON.stringify(clearedEasyRegions));
+                        bonusCoins = 50;
+                        userCoins += bonusCoins;
+                        updateCoinsDisplay();
+                        bonusBadge.classList.remove('hidden');
+                    } else {
+                        bonusBadge.classList.add('hidden');
+                    }
+                } else if (currentQuizLevel === 'hard') {
+                    if (!clearedHardRegions.includes(currentRegionObj.id)) {
+                        clearedHardRegions.push(currentRegionObj.id);
+                        localStorage.setItem("pref_quiz_cleared_hard_regions", JSON.stringify(clearedHardRegions));
+                        bonusCoins = 50;
+                        userCoins += bonusCoins;
+                        updateCoinsDisplay();
+                        bonusBadge.classList.remove('hidden');
+                    } else {
+                        bonusBadge.classList.add('hidden');
+                    }
+                }
+            } else {
+                bonusBadge.classList.add('hidden');
+            }
+
+            document.getElementById('result-coins-text').innerText = `+${coinsEarned + bonusCoins}`;
+
+            // Trigger Confetti
+            if (currentScore > 0) {
+                confetti({
+                    particleCount: isPerfect ? 100 : 50,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+
+        function renderGachaScreen() {
+            const pullBtn = document.getElementById('gacha-pull-btn');
+            if (userCoins < 50) {
+                pullBtn.disabled = true;
+                pullBtn.className = "w-full max-w-sm mx-auto bg-slate-400 text-slate-200 font-black text-xl py-4 rounded-2xl shadow border-b-4 border-slate-600 cursor-not-allowed flex items-center justify-center gap-2";
+            } else {
+                pullBtn.disabled = false;
+                pullBtn.className = "w-full max-w-sm mx-auto bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 hover:from-yellow-300 hover:to-amber-400 text-amber-950 font-black text-xl py-4 rounded-2xl shadow-xl border-b-4 border-amber-600 transition transform active:scale-95 flex items-center justify-center gap-2";
+            }
+        }
+
+        function doGacha() {
+            if (userCoins < 50) return;
+
+            userCoins -= 50;
+            updateCoinsDisplay();
+            renderGachaScreen();
+
+            // Pick a card based on rarity weight
+            const rand = Math.random() * 100;
+            let targetRarity = "N";
+            if (rand < 10) targetRarity = "SSR";      // 10%
+            else if (rand < 30) targetRarity = "SR";  // 20%
+            else if (rand < 60) targetRarity = "R";   // 30%
+            else targetRarity = "N";                  // 40%
+
+            let candidates = PREFECTURES_DATA.filter(p => p.rarity === targetRarity);
+            if (candidates.length === 0) candidates = PREFECTURES_DATA;
+
+            const card = candidates[Math.floor(Math.random() * candidates.length)];
+
+            const isNew = !collectedCards.includes(card.id);
+            if (isNew) {
+                collectedCards.push(card.id);
+                localStorage.setItem("pref_quiz_cards", JSON.stringify(collectedCards));
+            }
+
+            // Show Result Modal
+            showGachaModal(card, isNew);
+        }
+
+        function showGachaModal(card, isNew) {
+            const modal = document.getElementById('modal-gacha-result');
+            const rarityBadge = document.getElementById('gacha-result-rarity');
+            
+            const rarityColors = {
+                "SSR": "bg-gradient-to-r from-amber-500 to-yellow-400 text-amber-950 font-black",
+                "SR": "bg-gradient-to-r from-purple-500 to-pink-500 text-white font-black",
+                "R": "bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-black",
+                "N": "bg-slate-500 text-white font-black"
+            };
+
+            rarityBadge.className = `inline-block px-4 py-1 rounded-full text-xs shadow ${rarityColors[card.rarity] || 'bg-slate-500'}`;
+            rarityBadge.innerText = card.rarity;
+
+            document.getElementById('gacha-card-icon').innerText = card.icon;
+            document.getElementById('gacha-card-title').innerText = card.name;
+            document.getElementById('gacha-card-item').innerText = `名物: ${card.specialty}`;
+            document.getElementById('gacha-result-msg').innerText = isNew ? "✨ 新しいカードをゲットしたよ！" : "持っているカード（かぶり）だったよ！";
+
+            modal.classList.remove('hidden');
+
+            confetti({
+                particleCount: 80,
+                spread: 60,
+                origin: { y: 0.5 }
+            });
+        }
+
+        function closeGachaModal() {
+            document.getElementById('modal-gacha-result').classList.add('hidden');
+        }
+
+        function renderCollectionGrid() {
+            const grid = document.getElementById('collection-grid');
+            grid.innerHTML = '';
+
+            document.getElementById('collection-count-text').innerText = collectedCards.length;
+
+            PREFECTURES_DATA.forEach(card => {
+                const isOwned = collectedCards.includes(card.id);
+                const cardEl = document.createElement('div');
+
+                if (isOwned) {
+                    const rarityColors = {
+                        "SSR": "border-yellow-400 bg-amber-50",
+                        "SR": "border-purple-300 bg-purple-50",
+                        "R": "border-blue-300 bg-blue-50",
+                        "N": "border-slate-300 bg-slate-50"
+                    };
+
+                    cardEl.onclick = () => showCardDetail(card);
+                    cardEl.className = `p-3 rounded-2xl border-2 shadow transition active:scale-95 cursor-pointer flex flex-col items-center justify-between text-center gap-1 ${rarityColors[card.rarity]}`;
+                    cardEl.innerHTML = `
+                        <div class="w-full flex justify-between items-center text-[10px] font-black">
+                            <span class="px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">${card.rarity}</span>
+                            <span class="text-slate-400">No.${card.id}</span>
+                        </div>
+                        <div class="text-4xl py-1">${card.icon}</div>
+                        <div class="font-black text-sm text-slate-800">${card.name}</div>
+                        <div class="text-[10px] font-bold text-slate-500 truncate w-full">${card.specialty}</div>
+                    `;
+                } else {
+                    cardEl.className = "p-3 rounded-2xl border-2 border-slate-200 bg-slate-100 flex flex-col items-center justify-between text-center gap-1 opacity-60";
+                    cardEl.innerHTML = `
+                        <div class="w-full text-right text-[10px] font-black text-slate-400">No.${card.id}</div>
+                        <div class="text-4xl py-1 text-slate-300">❓</div>
+                        <div class="font-black text-sm text-slate-400">？？？</div>
+                        <div class="text-[10px] font-bold text-slate-400">未獲得</div>
+                    `;
+                }
+
+                grid.appendChild(cardEl);
+            });
+        }
+
+        function showCardDetail(card) {
+            const modal = document.getElementById('modal-card-detail');
+            document.getElementById('detail-rarity-badge').innerText = card.rarity;
+            document.getElementById('detail-pref-region').innerText = `${card.region}地方`;
+            document.getElementById('detail-card-icon').innerText = card.icon;
+            document.getElementById('detail-pref-name').innerText = card.name;
+            document.getElementById('detail-capital-name').innerText = `県庁所在地: ${card.capital}`;
+            document.getElementById('detail-specialties-text').innerText = `${card.specialty}（${card.hint}）`;
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeCardDetailModal() {
+            document.getElementById('modal-card-detail').classList.add('hidden');
+        }
+
+        window.onload = function() {
+            updateCoinsDisplay();
+            showScreen('menu');
+            loadJapanGeoJsonData();
+        };
+    </script>
+</body>
+</html>
