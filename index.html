@@ -63,7 +63,7 @@
             <div class="flex items-center gap-3">
                 <div class="bg-amber-900/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-amber-300/40 flex items-center gap-2 shadow-inner">
                     <i class="fa-solid fa-coins text-yellow-300 text-lg md:text-xl drop-shadow"></i>
-                    <span id="user-coins" class="font-black text-yellow-200 text-base md:text-lg">0</span>
+                    <span id="user-coins" class="font-black text-yellow-200 text-base md:text-lg">100</span>
                     <span class="text-xs text-amber-100 font-bold">枚</span>
                 </div>
             </div>
@@ -129,7 +129,7 @@
                         </span>
                     </div>
                     <p id="hard-status-desc" class="text-xs md:text-sm text-orange-900 font-bold">
-                        💡 各地方の初級コースをクリアすると解放されるよ！初めてクリアすると<span class="text-orange-600 font-black underline">初回ボーナス+50枚</span>もらえるよ！
+                        💡 各地方の初級コースをクリアすると、その地方の上級コースが解放されるよ！
                     </p>
 
                     <!-- Region Buttons Grid for Hard -->
@@ -145,7 +145,7 @@
                     <div class="text-left space-y-1">
                         <span class="bg-yellow-300 text-rose-950 font-black text-xs px-2.5 py-0.5 rounded-full">ガチャをひく</span>
                         <h4 class="text-xl font-black">めいぶつガチャ</h4>
-                        <p class="text-xs text-rose-100 font-bold">50枚で1回ひけるよ！</p>
+                        <p class="text-xs text-rose-100 font-bold">100枚で1回 / 1000枚で10連(11枚)!</p>
                     </div>
                     <div class="text-4xl group-hover:scale-110 transition duration-200">🎁</div>
                 </button>
@@ -175,7 +175,7 @@
                     <span id="quiz-region-name" class="font-black text-slate-800 text-sm md:text-base">北海道・東北</span>
                 </div>
                 <div class="font-black text-amber-700 text-sm md:text-lg" id="quiz-progress-text">
-                    第 1 / 5 問
+                    第 1 問
                 </div>
             </div>
 
@@ -205,7 +205,7 @@
                     赤くひかる都道府県の名前をえらぼう！
                 </h3>
 
-                <!-- 4 Choices Grid (Picked strictly from SAME region) -->
+                <!-- 4 Choices Grid -->
                 <div id="quiz-options-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                     <!-- Option Buttons Injected by JS -->
                 </div>
@@ -261,19 +261,26 @@
                 <div class="space-y-2">
                     <span class="bg-yellow-400 text-purple-950 font-black text-xs px-3 py-1 rounded-full uppercase tracking-wider">めいぶつガチャ</span>
                     <h2 class="text-2xl md:text-4xl font-black">47都道府県のカードを集めよう！</h2>
-                    <p class="text-xs md:text-sm text-purple-200 font-bold">1回 50枚のコインでまわせるよ！</p>
+                    <p class="text-xs md:text-sm text-purple-200 font-bold">1回 100枚 / 10連 1000枚 (レア確定+11枚お得!)</p>
                 </div>
 
                 <!-- Gacha Machine Visual -->
-                <div id="gacha-machine-visual" class="py-6 flex flex-col items-center justify-center space-y-4">
+                <div id="gacha-machine-visual" class="py-4 flex flex-col items-center justify-center space-y-4">
                     <div class="text-8xl md:text-9xl animate-bounce">🎁</div>
                 </div>
 
-                <!-- Gacha Action Button -->
-                <button id="gacha-pull-btn" onclick="doGacha()" class="w-full max-w-sm mx-auto bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 hover:from-yellow-300 hover:to-amber-400 text-amber-950 font-black text-xl py-4 rounded-2xl shadow-xl border-b-4 border-amber-600 transition transform active:scale-95 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-coins text-amber-700"></i>
-                    <span>ガチャをひく (50枚)</span>
-                </button>
+                <!-- Gacha Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+                    <button id="gacha-pull-btn" onclick="doGacha()" class="flex-1 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 hover:from-yellow-300 hover:to-amber-400 text-amber-950 font-black text-lg py-3.5 rounded-2xl shadow-xl border-b-4 border-amber-600 transition transform active:scale-95 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-coins text-amber-700"></i>
+                        <span>1回ひく (100枚)</span>
+                    </button>
+
+                    <button id="gacha-pull-10-btn" onclick="doTenGacha()" class="flex-1 bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white font-black text-lg py-3.5 rounded-2xl shadow-xl border-b-4 border-rose-800 transition transform active:scale-95 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-star text-yellow-300"></i>
+                        <span>10連 (1000枚)</span>
+                    </button>
+                </div>
 
                 <button onclick="showScreen('menu')" class="inline-block text-slate-300 font-bold text-sm underline pt-2">
                     メニューへもどる
@@ -310,18 +317,31 @@
 
     <!-- GACHA RESULT MODAL -->
     <div id="modal-gacha-result" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl border-4 border-yellow-400 animate-fade-in">
-            <div id="gacha-result-rarity" class="inline-block px-4 py-1 rounded-full text-white font-black text-xs shadow">
-                SSR
-            </div>
-            
-            <div id="gacha-card-visual" class="bg-gradient-to-br from-amber-100 to-orange-100 rounded-2xl p-6 border-2 border-amber-300 space-y-2 card-shine">
-                <div id="gacha-card-icon" class="text-7xl py-2">🍏</div>
-                <h3 id="gacha-card-title" class="text-xl font-black text-slate-900">青森県</h3>
-                <p id="gacha-card-item" class="text-xs font-bold text-amber-800 bg-white/80 py-1 px-3 rounded-full inline-block">名物: つがるりんご</p>
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full text-center space-y-4 shadow-2xl border-4 border-yellow-400 animate-fade-in max-h-[90vh] overflow-y-auto">
+            <div id="single-gacha-result-view" class="space-y-4">
+                <div id="gacha-result-rarity" class="inline-block px-4 py-1 rounded-full text-white font-black text-xs shadow">
+                    SSR
+                </div>
+                
+                <div id="gacha-card-visual" class="bg-gradient-to-br from-amber-100 to-orange-100 rounded-2xl p-6 border-2 border-amber-300 space-y-2 card-shine">
+                    <div id="gacha-card-icon" class="text-7xl py-2">🍏</div>
+                    <p id="gacha-card-item" class="text-xs font-bold text-amber-800 bg-white/80 py-1 px-3 rounded-full inline-block">名物: つがるりんご</p>
+                </div>
+
+                <p id="gacha-result-msg" class="text-xs font-bold text-slate-600">新しいカードをゲットしたよ！</p>
             </div>
 
-            <p id="gacha-result-msg" class="text-xs font-bold text-slate-600">新しいカードをゲットしたよ！</p>
+            <!-- 10連ガチャ用マルチ表示エリア -->
+            <div id="multi-gacha-result-view" class="hidden space-y-3">
+                <h3 class="text-lg font-black text-amber-600 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> 10連ガチャ結果 (11枚)
+                </h3>
+                <p id="multi-gacha-new-count" class="text-xs font-bold text-rose-500 bg-rose-50 py-1 rounded-full border border-rose-200">✨ NEWカードを 0枚 ゲット！</p>
+                
+                <div id="multi-gacha-cards-grid" class="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-64 overflow-y-auto p-1">
+                    <!-- Injected via JavaScript -->
+                </div>
+            </div>
 
             <button onclick="closeGachaModal()" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black py-3 rounded-2xl shadow border-b-4 border-orange-700 active:scale-95">
                 OK
@@ -339,7 +359,6 @@
 
             <div class="bg-gradient-to-br from-amber-50 to-orange-100 rounded-2xl p-5 border border-amber-200 space-y-2">
                 <div id="detail-card-icon" class="text-6xl">🍏</div>
-                <h3 id="detail-pref-name" class="text-2xl font-black text-slate-900">青森県</h3>
                 <p id="detail-capital-name" class="text-xs font-bold text-slate-600">県庁所在地: 青森市</p>
             </div>
 
@@ -355,6 +374,80 @@
     </div>
 
     <script>
+        // Sound Effects Engine (Web Audio API)
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSE(type) {
+            try {
+                initAudio();
+                if (!audioCtx) return;
+                const now = audioCtx.currentTime;
+
+                if (type === 'correct') {
+                    [523.25, 659.25, 783.99].forEach((freq, i) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.08);
+                        gain.gain.setValueAtTime(0.25, now + i * 0.08);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.3);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now + i * 0.08);
+                        osc.stop(now + i * 0.08 + 0.3);
+                    });
+                } else if (type === 'wrong') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(160, now);
+                    osc.frequency.setValueAtTime(120, now + 0.15);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'click') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(800, now);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } else if (type === 'gacha') {
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, idx) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.09);
+                        gain.gain.setValueAtTime(0.3, now + idx * 0.09);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.09 + 0.35);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now + idx * 0.09);
+                        osc.stop(now + idx * 0.09 + 0.35);
+                    });
+                }
+            } catch (e) {
+                console.warn("Audio Context Error:", e);
+            }
+        }
+
         // REGIONS DATA DEFINITION
         const REGIONS_LIST = [
             { id: "hokkaido_tohoku", name: "北海道・東北", icon: "🏔️", matchRegions: ["北海道", "東北"], prefIds: [1, 2, 3, 4, 5, 6, 7] },
@@ -366,7 +459,9 @@
             { id: "kyushu_okinawa", name: "九州・沖縄", icon: "🌺", matchRegions: ["九州", "沖縄"], prefIds: [40, 41, 42, 43, 44, 45, 46, 47] }
         ];
 
+        // PREFECTURES_DATA
         const PREFECTURES_DATA = [
+            { id: 47, name: "沖縄県", kana: "おきなわけん", region: "沖縄", capital: "那覇市", icon: "🌺", rarity: "SSR", specialty: "首里城マスコット", hint: "綺麗な海と暖かい気候！首里城やシーサー、ゴーヤが有名だよ。" },
             { id: 1, name: "北海道", kana: "ほっかいどう", region: "北海道", capital: "札幌市", icon: "🍣", rarity: "SSR", specialty: "豪華海鮮丼", hint: "日本で一番広い都道府県！広大な自然やいくら・サケなどの海鮮、スープカレーが有名だよ。" },
             { id: 2, name: "青森県", kana: "あおもりけん", region: "東北", capital: "青森市", icon: "🍏", rarity: "SR", specialty: "つがるりんご", hint: "りんごの生産量が日本一！津軽海峡やねぶた祭りが有名だよ。" },
             { id: 3, name: "岩手県", kana: "いわてけん", region: "東北", capital: "盛岡市", icon: "🍜", rarity: "R", specialty: "わんこそば", hint: "本州で一番面積が広い県！南部鉄器やわんこそば、小岩井農場が有名だよ。" },
@@ -412,12 +507,13 @@
             { id: 43, name: "熊本県", kana: "くまもとけん", region: "九州", capital: "熊本市", icon: "🍉", rarity: "SR", specialty: "熊本すいか", hint: "立派な熊本城や阿蘇山、すいかの生産で有名な県だよ。" },
             { id: 44, name: "大分県", kana: "おおいたけん", region: "九州", capital: "大分市", icon: "♨️", rarity: "R", specialty: "別府温泉湯の華", hint: "別府や由布院など、日本一の温泉湧出量を誇る県だよ。" },
             { id: 45, name: "宮崎県", kana: "みやざきけん", region: "九州", capital: "宮崎市", icon: "🥭", rarity: "SR", specialty: "完熟マンゴー", hint: "南国ムード漂う日南海岸や、完熟マンゴーが有名な県だよ。" },
-            { id: 46, name: "鹿児島県", kana: "かごしまけん", region: "九州", capital: "鹿児島市", icon: "🌋", rarity: "SR", specialty: "黒豚と桜島みかん", hint: "桜島という活火山や、かごしま黒豚、さつまいもが有名だよ。" },
-            { id: 47, name: "沖縄県", kana: "おきなわけん", region: "沖縄", capital: "那覇市", icon: "🌺", rarity: "SSR", specialty: "首里城マスコット", hint: "綺麗な海と暖かい気候！首里城やシーサー、ゴーヤが有名だよ。" }
+            { id: 46, name: "鹿児島県", kana: "かごしまけん", region: "九州", capital: "鹿児島市", icon: "🌋", rarity: "SR", specialty: "黒豚と桜島みかん", hint: "桜島という活火山や、かごしま黒豚、さつまいもが有名だよ。" }
         ];
 
         // APP STATE
-        let userCoins = parseInt(localStorage.getItem("pref_quiz_coins")) || 0;
+        let userCoins = localStorage.getItem("pref_quiz_coins") !== null 
+            ? parseInt(localStorage.getItem("pref_quiz_coins")) 
+            : 100;
         let collectedCards = JSON.parse(localStorage.getItem("pref_quiz_cards")) || [];
         let clearedEasyRegions = JSON.parse(localStorage.getItem("pref_quiz_cleared_easy_regions")) || [];
         let clearedHardRegions = JSON.parse(localStorage.getItem("pref_quiz_cleared_hard_regions")) || [];
@@ -425,9 +521,8 @@
         let currentQuizQueue = [];
         let currentQuestionIndex = 0;
         let currentScore = 0;
-        let currentQuizLevel = 'easy'; // 'easy' or 'hard'
+        let currentQuizLevel = 'easy';
         let currentRegionObj = null;
-        let isFirstClearBonusEligible = false;
         let isAnswered = false;
         let japanGeoData = null;
         let isMapLoading = false;
@@ -439,6 +534,7 @@
         }
 
         function showScreen(screenId) {
+            playSE('click');
             const screens = ['screen-menu', 'screen-quiz', 'screen-result', 'screen-gacha', 'screen-collection'];
             screens.forEach(s => {
                 const el = document.getElementById(s);
@@ -599,7 +695,6 @@
             }
             isMapLoading = false;
 
-            // Re-render map if quiz screen is active in easy mode
             const quizScreen = document.getElementById('screen-quiz');
             if (quizScreen && !quizScreen.classList.contains('hidden') && currentQuizLevel === 'easy' && currentQuizQueue[currentQuestionIndex]) {
                 renderD3RegionalMap(currentQuizQueue[currentQuestionIndex]);
@@ -619,6 +714,55 @@
             return found ? found.id : null;
         }
 
+        function sanitizeFeatureGeometry(feature) {
+            if (!feature || !feature.geometry) return feature;
+            const prefId = getPrefIdFromFeature(feature);
+            const geom = feature.geometry;
+
+            if (geom.type === "MultiPolygon") {
+                const filteredPolys = geom.coordinates.filter(poly => {
+                    const outerRing = poly[0];
+                    if (!outerRing || outerRing.length === 0) return false;
+
+                    let sumLat = 0, sumLon = 0;
+                    for (let i = 0; i < outerRing.length; i++) {
+                        sumLon += outerRing[i][0];
+                        sumLat += outerRing[i][1];
+                    }
+                    const avgLon = sumLon / outerRing.length;
+                    const avgLat = sumLat / outerRing.length;
+
+                    if (prefId === 13) {
+                        if (avgLat < 35.0 || avgLon > 140.2) return false;
+                    }
+                    if ([8, 9, 10, 11, 12, 13, 14].includes(prefId)) {
+                        if (avgLat < 34.6 || avgLon > 141.2) return false;
+                    }
+                    if (prefId === 46) {
+                        if (avgLat < 30.2) return false;
+                    }
+                    if (prefId === 47) {
+                        // 沖縄本島のみに限定（宮古・八重山・久米島などの離島を除外）
+                        if (avgLat < 26.0 || avgLat > 27.1 || avgLon < 127.4 || avgLon > 128.5) return false;
+                    }
+                    if (prefId === 42) {
+                        if (avgLat > 34.1 && avgLon < 129.5) return false;
+                    }
+
+                    return true;
+                });
+
+                return {
+                    ...feature,
+                    geometry: {
+                        ...geom,
+                        coordinates: filteredPolys.length > 0 ? filteredPolys : geom.coordinates
+                    }
+                };
+            }
+            return feature;
+        }
+
         function renderD3RegionalMap(targetPref) {
             const svg = d3.select("#japan-map-svg");
             svg.selectAll("*").remove();
@@ -627,7 +771,6 @@
             const height = 800;
 
             if (!japanGeoData) {
-                // Display loading indicator
                 const g = svg.append("g").attr("transform", `translate(${width / 2}, ${height / 2})`);
                 g.append("text")
                     .attr("text-anchor", "middle")
@@ -636,20 +779,24 @@
                     .attr("font-size", "22px")
                     .text("🗺️ 地図データをよみこみ中...");
                 
-                // Trigger load if not started
                 loadJapanGeoJsonData();
                 return;
             }
 
-            // Filter features belonging to current region
-            const regionFeatures = japanGeoData.features.filter(f => {
-                const pid = getPrefIdFromFeature(f);
-                return pid && currentRegionObj.prefIds.includes(pid);
-            });
+            if (currentRegionObj && currentRegionObj.id === "kyushu_okinawa") {
+                renderKyushuOkinawaMap(svg, targetPref, width, height);
+                return;
+            }
 
-            const displayFeatures = regionFeatures.length > 0 ? regionFeatures : japanGeoData.features;
+            const regionFeatures = japanGeoData.features
+                .filter(f => {
+                    const pid = getPrefIdFromFeature(f);
+                    return pid && currentRegionObj.prefIds.includes(pid);
+                })
+                .map(f => sanitizeFeatureGeometry(f));
 
-            // Projection zoomed into current region
+            const displayFeatures = regionFeatures.length > 0 ? regionFeatures : japanGeoData.features.map(f => sanitizeFeatureGeometry(f));
+
             const projection = d3.geoMercator();
             const pathGenerator = d3.geoPath().projection(projection);
 
@@ -658,7 +805,7 @@
                 features: displayFeatures
             };
 
-            projection.fitExtent([[40, 40], [width - 40, height - 40]], featureCollection);
+            projection.fitExtent([[30, 30], [width - 30, height - 30]], featureCollection);
 
             const mapGroup = svg.append("g");
 
@@ -670,15 +817,14 @@
                 .attr("fill", d => {
                     const pid = getPrefIdFromFeature(d);
                     if (pid === targetPref.id) {
-                        return "#ef4444"; // Highlight target red
+                        return "#ef4444";
                     }
-                    return "#fde047"; // Region yellow
+                    return "#fde047";
                 })
                 .attr("stroke", "#ffffff")
-                .attr("stroke-width", 2);
+                .attr("stroke-width", 2.5);
 
-            // Render Static Pin over Target Prefecture
-            const targetFeature = japanGeoData.features.find(d => getPrefIdFromFeature(d) === targetPref.id);
+            const targetFeature = displayFeatures.find(d => getPrefIdFromFeature(d) === targetPref.id);
 
             if (targetFeature) {
                 const centroid = pathGenerator.centroid(targetFeature);
@@ -687,15 +833,163 @@
                         .attr("transform", `translate(${centroid[0]}, ${centroid[1]})`);
 
                     pinGroup.append("circle")
-                        .attr("r", 16)
+                        .attr("r", 14)
                         .attr("fill", "#dc2626")
-                        .attr("opacity", 0.5);
+                        .attr("opacity", 0.6);
 
                     pinGroup.append("text")
-                        .attr("y", -6)
+                        .attr("y", -5)
                         .attr("text-anchor", "middle")
-                        .attr("font-size", "30px")
+                        .attr("font-size", "28px")
                         .text("📍");
+                }
+            }
+        }
+
+        function renderKyushuOkinawaMap(svg, targetPref, width, height) {
+            const mainlandFeatures = japanGeoData.features
+                .filter(f => {
+                    const pid = getPrefIdFromFeature(f);
+                    return pid && pid >= 40 && pid <= 46;
+                })
+                .map(f => sanitizeFeatureGeometry(f));
+
+            const okinawaFeatures = japanGeoData.features
+                .filter(f => getPrefIdFromFeature(f) === 47)
+                .map(f => sanitizeFeatureGeometry(f));
+
+            const projectionMain = d3.geoMercator();
+            const pathMain = d3.geoPath().projection(projectionMain);
+
+            const mainlandCollection = {
+                type: "FeatureCollection",
+                features: mainlandFeatures
+            };
+
+            // 九州本土の配置位置（左上の拡大インセット枠と重ならないよう、右寄りに配置）
+            projectionMain.fitExtent([[320, 30], [width - 20, height - 20]], mainlandCollection);
+
+            const mapGroup = svg.append("g");
+
+            mapGroup.selectAll("path.mainland")
+                .data(mainlandFeatures)
+                .enter()
+                .append("path")
+                .attr("class", "mainland")
+                .attr("d", pathMain)
+                .attr("fill", d => {
+                    const pid = getPrefIdFromFeature(d);
+                    return pid === targetPref.id ? "#ef4444" : "#fde047";
+                })
+                .attr("stroke", "#ffffff")
+                .attr("stroke-width", 2.5);
+
+            if (targetPref.id >= 40 && targetPref.id <= 46) {
+                const targetFeature = mainlandFeatures.find(d => getPrefIdFromFeature(d) === targetPref.id);
+                if (targetFeature) {
+                    const centroid = pathMain.centroid(targetFeature);
+                    if (!isNaN(centroid[0]) && !isNaN(centroid[1])) {
+                        const pinGroup = svg.append("g")
+                            .attr("transform", `translate(${centroid[0]}, ${centroid[1]})`);
+
+                        pinGroup.append("circle")
+                            .attr("r", 14)
+                            .attr("fill", "#dc2626")
+                            .attr("opacity", 0.6);
+
+                        pinGroup.append("text")
+                            .attr("y", -5)
+                            .attr("text-anchor", "middle")
+                            .attr("font-size", "28px")
+                            .text("📍");
+                    }
+                }
+            }
+
+            // 沖縄県の小窓枠サイズを大幅に拡大 (340px x 280px)
+            const insetWidth = 340;
+            const insetHeight = 280;
+            const insetX = 15;
+            const insetY = 15;
+
+            const insetGroup = svg.append("g")
+                .attr("transform", `translate(${insetX}, ${insetY})`);
+
+            // インセット背景枠
+            insetGroup.append("rect")
+                .attr("width", insetWidth)
+                .attr("height", insetHeight)
+                .attr("rx", 20)
+                .attr("ry", 20)
+                .attr("fill", "#ffffff")
+                .attr("stroke", "#0284c7")
+                .attr("stroke-width", 4);
+
+            insetGroup.append("rect")
+                .attr("x", 5)
+                .attr("y", 5)
+                .attr("width", insetWidth - 10)
+                .attr("height", insetHeight - 10)
+                .attr("rx", 16)
+                .attr("ry", 16)
+                .attr("fill", "#e0f2fe");
+
+            // 小窓見出し
+            insetGroup.append("text")
+                .attr("x", 16)
+                .attr("y", 32)
+                .attr("font-size", "16px")
+                .attr("font-weight", "bold")
+                .attr("fill", "#0369a1")
+            // 小窓見出し（テキストなし）
+
+            if (okinawaFeatures.length > 0) {
+                const projectionOkinawa = d3.geoMercator();
+                const pathOkinawa = d3.geoPath().projection(projectionOkinawa);
+
+                const okinawaCollection = {
+                    type: "FeatureCollection",
+                    features: okinawaFeatures
+                };
+
+                // 沖縄本島を小窓いっぱいに大きくフィッティング（上部マージンを広げて大きく表示）
+                projectionOkinawa.fitExtent(
+                    [[insetX + 15, insetY + 15], [insetX + insetWidth - 15, insetY + insetHeight - 15]],
+                    okinawaCollection
+                );
+
+                const okinawaGroup = svg.append("g");
+
+                okinawaGroup.selectAll("path.okinawa")
+                    .data(okinawaFeatures)
+                    .enter()
+                    .append("path")
+                    .attr("class", "okinawa")
+                    .attr("d", pathOkinawa)
+                    .attr("fill", targetPref.id === 47 ? "#ef4444" : "#fde047")
+                    .attr("stroke", "#ffffff")
+                    .attr("stroke-width", 2.5);
+
+                if (targetPref.id === 47) {
+                    const targetFeature = okinawaFeatures[0];
+                    if (targetFeature) {
+                        const centroid = pathOkinawa.centroid(targetFeature);
+                        if (!isNaN(centroid[0]) && !isNaN(centroid[1])) {
+                            const pinGroup = svg.append("g")
+                                .attr("transform", `translate(${centroid[0]}, ${centroid[1]})`);
+
+                            pinGroup.append("circle")
+                                .attr("r", 16)
+                                .attr("fill", "#dc2626")
+                                .attr("opacity", 0.6);
+
+                            pinGroup.append("text")
+                                .attr("y", -5)
+                                .attr("text-anchor", "middle")
+                                .attr("font-size", "30px")
+                                .text("📍");
+                        }
+                    }
                 }
             }
         }
@@ -704,22 +998,15 @@
             const optionsGrid = document.getElementById('quiz-options-grid');
             optionsGrid.innerHTML = '';
 
-            // Get all prefectures in current region
             const sameRegionPrefs = PREFECTURES_DATA.filter(p => currentRegionObj.prefIds.includes(p.id));
-            
-            // Other prefectures in region for wrong answers
             let wrongPool = sameRegionPrefs.filter(p => p.id !== correctPref.id);
 
-            // If region has fewer than 4 prefectures, add nearby prefectures
             if (wrongPool.length < 3) {
                 const extraPool = PREFECTURES_DATA.filter(p => p.id !== correctPref.id && !wrongPool.some(w => w.id === p.id));
                 wrongPool = wrongPool.concat(extraPool);
             }
 
-            // Shuffle and pick 3 wrong options
             wrongPool = wrongPool.sort(() => 0.5 - Math.random()).slice(0, 3);
-
-            // Combine correct option + 3 wrong options
             const choices = [correctPref, ...wrongPool].sort(() => 0.5 - Math.random());
 
             choices.forEach(pref => {
@@ -744,9 +1031,9 @@
             const nextBtn = document.getElementById('quiz-next-btn');
 
             if (selectedPref.id === correctPref.id) {
-                // CORRECT
+                playSE('correct');
                 currentScore++;
-                userCoins += 10; // 10 coins per correct answer
+                userCoins += 10;
                 updateCoinsDisplay();
 
                 selectedBtn.className = "w-full bg-emerald-500 text-white font-black py-4 px-4 rounded-2xl border-2 border-emerald-700 shadow text-base md:text-lg flex items-center justify-center gap-2 animate-bounce";
@@ -756,11 +1043,10 @@
                 feedbackTitle.innerText = "⭕ 大正解！";
                 feedbackDesc.innerText = "コイン +10枚ゲット！";
             } else {
-                // INCORRECT
+                playSE('wrong');
                 selectedBtn.className = "w-full bg-rose-500 text-white font-black py-4 px-4 rounded-2xl border-2 border-rose-700 shadow text-base md:text-lg flex items-center justify-center gap-2";
                 selectedBtn.innerText = `❌ ${selectedPref.name}`;
 
-                // Highlight correct button
                 allBtns.forEach(btn => {
                     if (btn.innerText === correctPref.name) {
                         btn.className = "w-full bg-emerald-500 text-white font-black py-4 px-4 rounded-2xl border-2 border-emerald-700 shadow text-base md:text-lg flex items-center justify-center gap-2";
@@ -777,6 +1063,7 @@
         }
 
         function nextQuestion() {
+            playSE('click');
             currentQuestionIndex++;
             if (currentQuestionIndex < currentQuizQueue.length) {
                 loadQuestion();
@@ -827,7 +1114,6 @@
 
             document.getElementById('result-coins-text').innerText = `+${coinsEarned + bonusCoins}`;
 
-            // Trigger Confetti
             if (currentScore > 0) {
                 confetti({
                     particleCount: isPerfect ? 100 : 50,
@@ -839,34 +1125,57 @@
 
         function renderGachaScreen() {
             const pullBtn = document.getElementById('gacha-pull-btn');
-            if (userCoins < 50) {
-                pullBtn.disabled = true;
-                pullBtn.className = "w-full max-w-sm mx-auto bg-slate-400 text-slate-200 font-black text-xl py-4 rounded-2xl shadow border-b-4 border-slate-600 cursor-not-allowed flex items-center justify-center gap-2";
-            } else {
-                pullBtn.disabled = false;
-                pullBtn.className = "w-full max-w-sm mx-auto bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 hover:from-yellow-300 hover:to-amber-400 text-amber-950 font-black text-xl py-4 rounded-2xl shadow-xl border-b-4 border-amber-600 transition transform active:scale-95 flex items-center justify-center gap-2";
+            const pull10Btn = document.getElementById('gacha-pull-10-btn');
+
+            if (pullBtn) {
+                if (userCoins < 100) {
+                    pullBtn.disabled = true;
+                    pullBtn.className = "flex-1 bg-slate-400 text-slate-200 font-black text-lg py-3.5 rounded-2xl shadow border-b-4 border-slate-600 cursor-not-allowed flex items-center justify-center gap-2 opacity-60";
+                } else {
+                    pullBtn.disabled = false;
+                    pullBtn.className = "flex-1 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 hover:from-yellow-300 hover:to-amber-400 text-amber-950 font-black text-lg py-3.5 rounded-2xl shadow-xl border-b-4 border-amber-600 transition transform active:scale-95 flex items-center justify-center gap-2";
+                }
+            }
+
+            if (pull10Btn) {
+                if (userCoins < 1000) {
+                    pull10Btn.disabled = true;
+                    pull10Btn.className = "flex-1 bg-slate-400 text-slate-200 font-black text-lg py-3.5 rounded-2xl shadow border-b-4 border-slate-600 cursor-not-allowed flex items-center justify-center gap-2 opacity-60";
+                } else {
+                    pull10Btn.disabled = false;
+                    pull10Btn.className = "flex-1 bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white font-black text-lg py-3.5 rounded-2xl shadow-xl border-b-4 border-rose-800 transition transform active:scale-95 flex items-center justify-center gap-2";
+                }
             }
         }
 
-        function doGacha() {
-            if (userCoins < 50) return;
-
-            userCoins -= 50;
-            updateCoinsDisplay();
-            renderGachaScreen();
-
-            // Pick a card based on rarity weight
-            const rand = Math.random() * 100;
+        function pullRandomCard(guaranteedRare = false) {
             let targetRarity = "N";
-            if (rand < 10) targetRarity = "SSR";      // 10%
-            else if (rand < 30) targetRarity = "SR";  // 20%
-            else if (rand < 60) targetRarity = "R";   // 30%
-            else targetRarity = "N";                  // 40%
+            if (guaranteedRare) {
+                const rand = Math.random() * 100;
+                if (rand < 30) targetRarity = "SSR";
+                else targetRarity = "SR";
+            } else {
+                const rand = Math.random() * 100;
+                if (rand < 10) targetRarity = "SSR";
+                else if (rand < 30) targetRarity = "SR";
+                else if (rand < 60) targetRarity = "R";
+                else targetRarity = "N";
+            }
 
             let candidates = PREFECTURES_DATA.filter(p => p.rarity === targetRarity);
             if (candidates.length === 0) candidates = PREFECTURES_DATA;
 
-            const card = candidates[Math.floor(Math.random() * candidates.length)];
+            return candidates[Math.floor(Math.random() * candidates.length)];
+        }
+
+        function doGacha() {
+            if (userCoins < 100) return;
+
+            userCoins -= 100;
+            updateCoinsDisplay();
+            renderGachaScreen();
+
+            const card = pullRandomCard(false);
 
             const isNew = !collectedCards.includes(card.id);
             if (isNew) {
@@ -874,12 +1183,48 @@
                 localStorage.setItem("pref_quiz_cards", JSON.stringify(collectedCards));
             }
 
-            // Show Result Modal
             showGachaModal(card, isNew);
         }
 
+        function doTenGacha() {
+            if (userCoins < 1000) return;
+
+            userCoins -= 1000;
+            updateCoinsDisplay();
+            renderGachaScreen();
+
+            const pulledCards = [];
+            let newCount = 0;
+
+            for (let i = 0; i < 10; i++) {
+                pulledCards.push(pullRandomCard(false));
+            }
+            pulledCards.push(pullRandomCard(true));
+
+            pulledCards.forEach(card => {
+                const isNew = !collectedCards.includes(card.id);
+                if (isNew) {
+                    collectedCards.push(card.id);
+                    newCount++;
+                }
+            });
+
+            if (newCount > 0) {
+                localStorage.setItem("pref_quiz_cards", JSON.stringify(collectedCards));
+            }
+
+            showMultiGachaModal(pulledCards, newCount);
+        }
+
         function showGachaModal(card, isNew) {
+            playSE('gacha');
             const modal = document.getElementById('modal-gacha-result');
+            const singleView = document.getElementById('single-gacha-result-view');
+            const multiView = document.getElementById('multi-gacha-result-view');
+
+            singleView.classList.remove('hidden');
+            multiView.classList.add('hidden');
+
             const rarityBadge = document.getElementById('gacha-result-rarity');
             
             const rarityColors = {
@@ -893,7 +1238,6 @@
             rarityBadge.innerText = card.rarity;
 
             document.getElementById('gacha-card-icon').innerText = card.icon;
-            document.getElementById('gacha-card-title').innerText = card.name;
             document.getElementById('gacha-card-item').innerText = `名物: ${card.specialty}`;
             document.getElementById('gacha-result-msg').innerText = isNew ? "✨ 新しいカードをゲットしたよ！" : "持っているカード（かぶり）だったよ！";
 
@@ -902,6 +1246,49 @@
             confetti({
                 particleCount: 80,
                 spread: 60,
+                origin: { y: 0.5 }
+            });
+        }
+
+        function showMultiGachaModal(cards, newCount) {
+            playSE('gacha');
+            const modal = document.getElementById('modal-gacha-result');
+            const singleView = document.getElementById('single-gacha-result-view');
+            const multiView = document.getElementById('multi-gacha-result-view');
+
+            singleView.classList.add('hidden');
+            multiView.classList.remove('hidden');
+
+            document.getElementById('multi-gacha-new-count').innerText = `✨ 新しいカードを ${newCount}枚 ゲット！`;
+
+            const grid = document.getElementById('multi-gacha-cards-grid');
+            grid.innerHTML = '';
+
+            const rarityBg = {
+                "SSR": "bg-amber-100 border-amber-400 text-amber-950",
+                "SR": "bg-purple-100 border-purple-400 text-purple-950",
+                "R": "bg-blue-100 border-blue-400 text-blue-950",
+                "N": "bg-slate-100 border-slate-300 text-slate-800"
+            };
+
+            cards.forEach((card, index) => {
+                const isGuaranteed = (index === 10);
+                const cardItem = document.createElement('div');
+                cardItem.className = `p-2 rounded-xl border-2 text-center space-y-0.5 relative ${rarityBg[card.rarity] || 'bg-slate-100'}`;
+                
+                cardItem.innerHTML = `
+                    ${isGuaranteed ? `<span class="absolute -top-2 -right-1 bg-rose-500 text-white text-[9px] px-1.5 py-0.2 rounded-full font-black shadow">確定</span>` : ''}
+                    <div class="text-[10px] font-black opacity-80">${card.rarity}</div>
+                    <div class="text-3xl py-1">${card.icon}</div>
+                `;
+                grid.appendChild(cardItem);
+            });
+
+            modal.classList.remove('hidden');
+
+            confetti({
+                particleCount: 120,
+                spread: 80,
                 origin: { y: 0.5 }
             });
         }
@@ -935,16 +1322,14 @@
                             <span class="px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">${card.rarity}</span>
                             <span class="text-slate-400">No.${card.id}</span>
                         </div>
-                        <div class="text-4xl py-1">${card.icon}</div>
-                        <div class="font-black text-sm text-slate-800">${card.name}</div>
+                        <div class="text-5xl py-2">${card.icon}</div>
                         <div class="text-[10px] font-bold text-slate-500 truncate w-full">${card.specialty}</div>
                     `;
                 } else {
                     cardEl.className = "p-3 rounded-2xl border-2 border-slate-200 bg-slate-100 flex flex-col items-center justify-between text-center gap-1 opacity-60";
                     cardEl.innerHTML = `
                         <div class="w-full text-right text-[10px] font-black text-slate-400">No.${card.id}</div>
-                        <div class="text-4xl py-1 text-slate-300">❓</div>
-                        <div class="font-black text-sm text-slate-400">？？？</div>
+                        <div class="text-5xl py-2 text-slate-300">❓</div>
                         <div class="text-[10px] font-bold text-slate-400">未獲得</div>
                     `;
                 }
@@ -958,7 +1343,6 @@
             document.getElementById('detail-rarity-badge').innerText = card.rarity;
             document.getElementById('detail-pref-region').innerText = `${card.region}地方`;
             document.getElementById('detail-card-icon').innerText = card.icon;
-            document.getElementById('detail-pref-name').innerText = card.name;
             document.getElementById('detail-capital-name').innerText = `県庁所在地: ${card.capital}`;
             document.getElementById('detail-specialties-text').innerText = `${card.specialty}（${card.hint}）`;
 
